@@ -11,12 +11,23 @@ export function parseJsonEnv(value) {
 
 export function extractWorktreePath(eventJson, contextJson) {
   const sources = [eventJson, contextJson].filter(Boolean);
+  // Ordered most-specific first. Field names verified against herdr 0.7.1:
+  //   event   -> data.worktree.path / data.worktree.checkout_path
+  //   context -> worktree.checkout_path / workspace_cwd
+  // repo_root/repo_key are the MAIN repo, never the new worktree, so they are
+  // deliberately excluded. Looser fallbacks are kept for other/older shapes.
   const pickers = [
-    (o) => o.worktree && o.worktree.path,
-    (o) => o.worktree && o.worktree.dir,
-    (o) => o.worktree && o.worktree.worktree_path,
+    (o) => o.data?.worktree?.path,
+    (o) => o.data?.worktree?.checkout_path,
+    (o) => o.data?.workspace?.worktree?.checkout_path,
+    (o) => o.worktree?.path,
+    (o) => o.worktree?.checkout_path,
+    (o) => o.worktree?.dir,
+    (o) => o.worktree?.worktree_path,
+    (o) => o.workspace?.worktree?.checkout_path,
+    (o) => o.workspace_cwd,
+    (o) => o.workspace?.path,
     (o) => o.path,
-    (o) => o.workspace && o.workspace.path,
   ];
   for (const src of sources) {
     for (const pick of pickers) {

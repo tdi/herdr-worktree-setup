@@ -17,6 +17,30 @@ test('extractWorktreePath probes event then context for a path field', () => {
   assert.equal(extractWorktreePath({}, {}), null);
 });
 
+test('extractWorktreePath resolves the real herdr 0.7.1 event JSON shape', () => {
+  // Captured from herdr 0.7.1 worktree.created. Worktree path lives at
+  // data.worktree.path; repo_root is the MAIN repo and must NOT be picked.
+  const eventJson = {
+    event: 'worktree_created',
+    data: {
+      type: 'worktree_created',
+      workspace: { workspace_id: 'wY', worktree: { repo_root: '/repo', checkout_path: '/wt/demo-feat' } },
+      worktree: { path: '/wt/demo-feat', branch: 'demo-feat' },
+    },
+  };
+  assert.equal(extractWorktreePath(eventJson, null), '/wt/demo-feat');
+});
+
+test('extractWorktreePath resolves the real herdr 0.7.1 context JSON shape', () => {
+  // Context worktree uses checkout_path (no `path` field); repo_root excluded.
+  const contextJson = {
+    workspace_id: 'wY',
+    workspace_cwd: '/wt/demo-feat',
+    worktree: { repo_root: '/repo', repo_name: 'demo-main', checkout_path: '/wt/demo-feat' },
+  };
+  assert.equal(extractWorktreePath(null, contextJson), '/wt/demo-feat');
+});
+
 test('parseMainRepo returns the first worktree path from porcelain output', () => {
   const out = [
     'worktree /home/u/code/repo',
