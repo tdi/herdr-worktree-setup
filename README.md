@@ -7,16 +7,30 @@ Runs user-configured shell steps inside a new worktree when herdr fires
 
 ## Install
 
+From GitHub (recommended):
+
 ```bash
-herdr plugin link /path/to/herdr-worktree-setup   # or: herdr plugin install <git-url>
+herdr plugin install tdi/herdr-worktree-setup
 ```
 
-Herdr runs the build step (`npm ci`) to install the one dependency.
+herdr fetches the repo, runs the build step (`npm ci`) to install the one
+dependency, and enables the plugin. Re-run the same command to update; remove
+with `herdr plugin uninstall tdi.worktree-setup`.
+
+For local development, link a working copy instead:
+
+```bash
+herdr plugin link /path/to/herdr-worktree-setup
+```
 
 ## Configure
 
-Create `config.toml` in the plugin config dir (`$HERDR_PLUGIN_CONFIG_DIR`);
-copy `config.example.toml` as a starting point.
+Find the plugin's config dir and drop a `config.toml` in it (copy
+`config.example.toml` as a starting point):
+
+```bash
+herdr plugin config-dir tdi.worktree-setup
+```
 
 ```toml
 [default]
