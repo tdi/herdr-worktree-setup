@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { createWriteStream, mkdirSync } from 'node:fs';
+import { mkdirSync, openSync, writeSync, closeSync } from 'node:fs';
 import { loadConfig, selectSteps } from './config.js';
 import { resolveWorktreePath, deriveGitInfo } from './worktree.js';
 import { runSteps } from './runner.js';
@@ -37,24 +37,36 @@ function main() {
     HERDR_BRANCH: branch ?? '',
   };
 
-  let log = null;
+  let logFd = null;
   if (env.HERDR_PLUGIN_STATE_DIR) {
     try {
       mkdirSync(env.HERDR_PLUGIN_STATE_DIR, { recursive: true });
-      log = createWriteStream(join(env.HERDR_PLUGIN_STATE_DIR, `setup-${stamp()}.log`));
+      logFd = openSync(join(env.HERDR_PLUGIN_STATE_DIR, `setup-${stamp()}.log`), 'a');
     } catch {
-      log = null;
+      logFd = null;
     }
   }
 
   const onOutput = ({ step, stdout, stderr, status }) => {
     const block = `$ ${step}\n${stdout}${stderr}[exit ${status}]\n`;
     process.stdout.write(block);
-    if (log) log.write(block);
+    if (logFd !== null) {
+      try {
+        writeSync(logFd, block);
+      } catch {
+        // best-effort logging
+      }
+    }
   };
 
   const result = runSteps(steps, { cwd: worktree, env: stepEnv, onOutput });
-  if (log) log.end();
+  if (logFd !== null) {
+    try {
+      closeSync(logFd);
+    } catch {
+      // ignore
+    }
+  }
 
   if (!result.ok) {
     process.stderr.write(`worktree-setup: step failed: ${result.failedStep}\n`);
