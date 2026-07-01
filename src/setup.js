@@ -9,7 +9,7 @@ function stamp() {
   return new Date().toISOString().replace(/[:.]/g, '-');
 }
 
-function main() {
+async function main() {
   const env = process.env;
 
   const config = loadConfig(env.HERDR_PLUGIN_CONFIG_DIR);
@@ -18,6 +18,10 @@ function main() {
   const worktree = resolveWorktreePath(env);
   if (!worktree) {
     process.stderr.write('worktree-setup: could not resolve new worktree path\n');
+    const trunc = (v) => (v == null ? '(unset)' : String(v).slice(0, 2000));
+    process.stderr.write(`  HERDR_PLUGIN_EVENT_JSON=${trunc(env.HERDR_PLUGIN_EVENT_JSON)}\n`);
+    process.stderr.write(`  HERDR_PLUGIN_CONTEXT_JSON=${trunc(env.HERDR_PLUGIN_CONTEXT_JSON)}\n`);
+    process.stderr.write(`  HERDR_WORKSPACE_ID=${env.HERDR_WORKSPACE_ID ?? '(unset)'}\n`);
     return 1;
   }
 
@@ -47,19 +51,24 @@ function main() {
     }
   }
 
-  const onOutput = ({ step, stdout, stderr, status }) => {
-    const block = `$ ${step}\n${stdout}${stderr}[exit ${status}]\n`;
-    process.stdout.write(block);
+  const writeOut = (text) => {
+    process.stdout.write(text);
     if (logFd !== null) {
       try {
-        writeSync(logFd, block);
+        writeSync(logFd, text);
       } catch {
         // best-effort logging
       }
     }
   };
 
-  const result = runSteps(steps, { cwd: worktree, env: stepEnv, onOutput });
+  const result = await runSteps(steps, {
+    cwd: worktree,
+    env: stepEnv,
+    onStepStart: (step) => writeOut(`$ ${step}\n`),
+    onData: (chunk) => writeOut(chunk.toString()),
+    onStepEnd: (step, status) => writeOut(`[exit ${status}]\n`),
+  });
   if (logFd !== null) {
     try {
       closeSync(logFd);
@@ -75,9 +84,9 @@ function main() {
   return 0;
 }
 
-try {
-  process.exit(main());
-} catch (err) {
-  process.stderr.write(`${err.message}\n`);
-  process.exit(1);
-}
+main()
+  .then((code) => process.exit(code))
+  .catch((err) => {
+    process.stderr.write(`${err.message}\n`);
+    process.exit(1);
+  });
