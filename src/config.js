@@ -20,14 +20,19 @@ export function canonicalize(p, home = homedir()) {
 
 export function loadConfig(configDir) {
   if (!configDir) return null;
+  const file = join(configDir, 'config.toml');
   let text;
   try {
-    text = readFileSync(join(configDir, 'config.toml'), 'utf8');
+    text = readFileSync(file, 'utf8');
   } catch {
     return null;
   }
   if (!text.trim()) return null;
-  return parse(text);
+  try {
+    return parse(text);
+  } catch (err) {
+    throw new Error(`worktree-setup: invalid config.toml at ${file}: ${err.message}`);
+  }
 }
 
 export function selectSteps(config, mainRepoPath, home = homedir()) {

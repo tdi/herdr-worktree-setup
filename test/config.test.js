@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { expandTilde, canonicalize, loadConfig, selectSteps } from '../src/config.js';
+import { expandTilde, loadConfig, selectSteps } from '../src/config.js';
 
 test('expandTilde expands ~ and ~/ using home', () => {
   assert.equal(expandTilde('~', '/home/u'), '/home/u');
@@ -46,4 +46,20 @@ test('selectSteps falls back to [default] when no project matches', () => {
 test('selectSteps returns null when no match and no default', () => {
   assert.equal(selectSteps({ project: [{ path: '/nope', steps: ['x'] }] }, '/other'), null);
   assert.equal(selectSteps(null, '/other'), null);
+});
+
+test('loadConfig throws a clear error for malformed TOML', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wtcfg-'));
+  writeFileSync(join(dir, 'config.toml'), 'not = = valid [[[');
+  assert.throws(() => loadConfig(dir), /invalid config\.toml/);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('selectSteps matches a ~-prefixed project path via realpath', () => {
+  const home = mkdtempSync(join(tmpdir(), 'wthome-'));
+  const repo = join(home, 'proj');
+  mkdirSync(repo);
+  const cfg = { project: [{ path: '~/proj', steps: ['echo tilde'] }] };
+  assert.deepEqual(selectSteps(cfg, repo, home), ['echo tilde']);
+  rmSync(home, { recursive: true, force: true });
 });
