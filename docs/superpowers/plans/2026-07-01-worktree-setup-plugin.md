@@ -83,7 +83,7 @@ node_modules/
 - [ ] **Step 4: Create `herdr-plugin.toml`**
 
 ```toml
-id = "dariusz.worktree-setup"
+id = "tdi.worktree-setup"
 name = "Worktree Setup"
 version = "0.1.0"
 min_herdr_version = "0.7.0"
