@@ -58,8 +58,15 @@ test('resolveWorktreePath returns null when nothing resolves', () => {
   assert.equal(resolveWorktreePath({}, () => ({ status: 1, stdout: '', stderr: '' })), null);
 });
 
+test('resolveWorktreePath returns null when CLI returns literal null JSON', () => {
+  const env = { HERDR_WORKSPACE_ID: 'ws-1', HERDR_BIN_PATH: 'herdr' };
+  const exec = () => ({ status: 0, stdout: 'null', stderr: '' });
+  assert.equal(resolveWorktreePath(env, exec), null);
+});
+
 test('deriveGitInfo returns mainRepo and branch from injected git calls', () => {
   const exec = (cmd, args) => {
+    assert.equal(cmd, 'git');
     if (args.includes('--porcelain')) {
       return { status: 0, stdout: 'worktree /main/repo\nHEAD abc\n\n', stderr: '' };
     }

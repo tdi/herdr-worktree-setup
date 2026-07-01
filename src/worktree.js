@@ -63,7 +63,11 @@ export function resolveWorktreePath(env, exec = runCmd) {
   } catch {
     return null;
   }
-  const items = Array.isArray(list) ? list : (list.worktrees ?? list.items ?? []);
+  const items = Array.isArray(list)
+    ? list
+    : list && typeof list === 'object'
+      ? (list.worktrees ?? list.items ?? [])
+      : [];
   const match = items.find(
     (w) => w.workspace_id === wsId || w.workspaceId === wsId || w.id === wsId,
   );
