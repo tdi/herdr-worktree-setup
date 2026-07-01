@@ -55,3 +55,10 @@ test('runSteps handles output larger than the old 1MB spawnSync cap without fail
   const res = await runSteps(['yes | head -c 2000000'], { cwd: process.cwd(), env: process.env });
   assert.deepEqual(res, { ok: true });
 });
+
+test('runSteps does not hang on a step that reads stdin', { timeout: 10000 }, async () => {
+  // `cat` reads until EOF; with stdin closed it gets immediate EOF and exits 0.
+  // Without the stdin fix this hangs forever.
+  const res = await runSteps(['cat'], { cwd: process.cwd(), env: process.env });
+  assert.deepEqual(res, { ok: true });
+});

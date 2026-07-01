@@ -67,7 +67,7 @@ async function main() {
     env: stepEnv,
     onStepStart: (step) => writeOut(`$ ${step}\n`),
     onData: (chunk) => writeOut(chunk.toString()),
-    onStepEnd: (step, status) => writeOut(`[exit ${status}]\n`),
+    onStepEnd: (_step, status) => writeOut(`[exit ${status}]\n`),
   });
   if (logFd !== null) {
     try {

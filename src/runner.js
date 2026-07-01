@@ -25,7 +25,7 @@ export function runSteps(steps, { cwd, env, onStepStart, onData, onStepEnd } = {
       const step = steps[index];
       if (onStepStart) onStepStart(step);
 
-      const child = spawn(step, { shell: '/bin/sh', cwd, env });
+      const child = spawn(step, { shell: '/bin/sh', cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
       let ended = false;
       const endStep = (status) => {
         if (ended) return;
