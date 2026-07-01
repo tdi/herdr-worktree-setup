@@ -1,0 +1,19 @@
+# Copy to $HERDR_PLUGIN_CONFIG_DIR/config.toml and edit.
+# Steps run inside the NEW worktree with these env vars available:
+#   HERDR_MAIN_REPO  - absolute path to the main repo checkout
+#   HERDR_WORKTREE   - absolute path to the new worktree
+#   HERDR_BRANCH     - branch checked out in the new worktree
+
+# Optional catch-all: runs for any repo without a specific [[project]] match.
+[default]
+steps = ["direnv allow 2>/dev/null || true"]
+
+# One entry per repo. `path` is the MAIN repo path (supports ~).
+[[project]]
+path = "~/code/myrepo"
+steps = [
+  'cp "$HERDR_MAIN_REPO"/.env* . 2>/dev/null || true',
+  "mise trust",
+  "direnv allow",
+  "pnpm install",
+]

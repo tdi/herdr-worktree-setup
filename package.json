@@ -1,0 +1,13 @@
+{
+  "name": "herdr-worktree-setup",
+  "version": "0.1.0",
+  "description": "Run per-project setup steps when a herdr worktree is created",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "smol-toml": "^1.3.1"
+  }
+}
