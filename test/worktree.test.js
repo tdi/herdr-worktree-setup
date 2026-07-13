@@ -64,7 +64,8 @@ test('resolveWorktreePath prefers the event JSON path (no exec call)', () => {
   assert.equal(called, false);
 });
 
-test('resolveWorktreePath falls back to herdr CLI matched by workspace id', () => {
+test('resolveWorktreePath falls back to herdr CLI matched by workspace id (flat array)', () => {
+  // Legacy/simple shape: plain array with id field
   const env = { HERDR_WORKSPACE_ID: 'ws-2', HERDR_BIN_PATH: 'herdr' };
   const list = [
     { id: 'ws-1', path: '/wt/one' },
@@ -76,6 +77,23 @@ test('resolveWorktreePath falls back to herdr CLI matched by workspace id', () =
     return { status: 0, stdout: JSON.stringify(list), stderr: '' };
   };
   assert.equal(resolveWorktreePath(env, exec), '/wt/two');
+});
+
+test('resolveWorktreePath falls back to herdr CLI matched by workspace id (herdr 0.7.3 shape)', () => {
+  // Real herdr 0.7.3 output: { id, result: { worktrees: [{ open_workspace_id, path }] } }
+  const env = { HERDR_WORKSPACE_ID: 'wC', HERDR_BIN_PATH: 'herdr' };
+  const list = {
+    id: 'cli:worktree:list',
+    result: {
+      type: 'worktree_list',
+      worktrees: [
+        { open_workspace_id: 'w1', path: '/main/repo' },
+        { open_workspace_id: 'wC', path: '/wt/feat' },
+      ],
+    },
+  };
+  const exec = () => ({ status: 0, stdout: JSON.stringify(list), stderr: '' });
+  assert.equal(resolveWorktreePath(env, exec), '/wt/feat');
 });
 
 test('resolveWorktreePath returns null when nothing resolves', () => {
