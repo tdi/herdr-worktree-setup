@@ -1,6 +1,6 @@
 id = "tdi.worktree-setup"
 name = "Worktree Setup"
-version = "0.1.0"
+version = "0.2.0"
 min_herdr_version = "0.7.0"
 description = "Run per-project setup steps when a worktree is created"
 platforms = ["linux", "macos"]
