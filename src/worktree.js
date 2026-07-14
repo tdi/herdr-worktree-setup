@@ -77,10 +77,14 @@ export function resolveWorktreePath(env, exec = runCmd) {
   const items = Array.isArray(list)
     ? list
     : list && typeof list === 'object'
-      ? (list.worktrees ?? list.items ?? [])
+      ? (list.result?.worktrees ?? list.worktrees ?? list.items ?? [])
       : [];
   const match = items.find(
-    (w) => w.workspace_id === wsId || w.workspaceId === wsId || w.id === wsId,
+    (w) =>
+      w.open_workspace_id === wsId ||
+      w.workspace_id === wsId ||
+      w.workspaceId === wsId ||
+      w.id === wsId,
   );
   if (!match) return null;
   return match.path ?? match.worktree ?? null;
