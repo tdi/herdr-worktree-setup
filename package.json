@@ -1,6 +1,6 @@
 {
   "name": "herdr-worktree-setup",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Run per-project setup steps when a herdr worktree is created",
   "type": "module",
   "private": true,
